@@ -285,14 +285,18 @@ end
 -->8
 -- keep drogon alive
 -- by Kirais & llunapuert
-t=0
+
 function _init()
+  t=0
+
   drogon = {
     sp=0,
     x=59,
     y=5,
     h=3,
     p=0,
+    t=0,
+    imm=false,
     box = {x1=0,y1=0,x2=7,y2=7}
   }
   crossbow = {
@@ -301,6 +305,25 @@ function _init()
     y=110
   }
   arrows = {}
+  start()
+end
+
+function start()
+  _update = update_game
+  _draw = draw_game
+end
+
+function game_over()
+  _update = update_over
+  _draw = draw_over
+end
+
+function update_over()
+end
+
+function draw_over()
+  cls()
+  print("game over",50,50,4)
 end
 
 function abs_box(s)
@@ -338,8 +361,15 @@ function shoot()
   add(arrows,a)
 end
 
-function _update()
+function update_game()
   t+=1
+  if drogon.imm then
+    drogon.t+=1
+    if drogon.t>30 then
+      drogon.imm=false
+      drogon.t=0
+    end
+  end
 
   for a in all(arrows) do
     a.x+=a.dx
@@ -348,9 +378,11 @@ function _update()
       a.y<0 or a.y>128 then
       del(arrows,a)
     end
-    if coll(a,drogon) then
+    if coll(a,drogon) and not drogon.imm then
       del(arrows,a)
+      drogon.imm=true
       drogon.h-=1
+      if drogon.h<=0 then game_over() end      
     end
   end
 
@@ -369,13 +401,18 @@ function _update()
 
 end
 
-function _draw()
+function draw_game()
   cls()
-  spr(drogon.sp,drogon.x,drogon.y)
-  spr(crossbow.sp,crossbow.x,crossbow.y)
+  print(drogon.p,9)
+  if not drogon.imm or t%8 < 4 then
+    spr(drogon.sp,drogon.x,drogon.y)
+  end
+  
   for a in all(arrows) do
     spr(a.sp,a.x,a.y)
   end
+
+  spr(crossbow.sp,crossbow.x,crossbow.y)
 
   for i=1,4 do
     if i<=drogon.h then 
