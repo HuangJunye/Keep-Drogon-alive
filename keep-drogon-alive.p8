@@ -287,34 +287,59 @@ end
 -- by Kirais & llunapuert
 t=0
 function _init()
-  drogon = {sp=0,x=59,y=5,h=3}
-  crossbow = {sp=16,x=59,y=110}
+  drogon = {
+    sp=0,
+    x=59,
+    y=5,
+    h=3,
+    p=0,
+    box = {x1=0,y1=0,x2=7,y2=7}
+  }
+  crossbow = {
+    sp=16,
+    x=59,
+    y=110
+  }
   arrows = {}
 end
 
+function abs_box(s)
+ local box = {}
+ box.x1 = s.box.x1 + s.x
+ box.y1 = s.box.y1 + s.y
+ box.x2 = s.box.x2 + s.x
+ box.y2 = s.box.y2 + s.y
+ return box
+end
+
+function coll(a,b)
+  box_a = abs_box(a)
+  box_b = abs_box(b)
+
+  if box_a.x1 > box_b.x2 or
+    box_a.y1 > box_b.y2 or
+    box_b.x1 > box_a.x2 or
+    box_b.y1 > box_a.y2 then
+    return false
+  end
+
+  return true
+end
+
 function shoot()
-  local a={
+  local a = {
     sp=32,
     x=crossbow.x,
     y=crossbow.y,
     dx=0,
-    dy=-1
+    dy=-1,
+    box = {x1=3,y1=4,x2=5,y2=7}
   }
   add(arrows,a)
 end
 
 function _update()
   t+=1
-  if(t%6<3) then
-    drogon.sp=0
-  else
-    drogon.sp=1
-  end
-
-  if btn(0) then drogon.x-=1 end
-  if btn(1) then drogon.x+=1 end
-  if btn(2) then drogon.y-=1 end
-  if btn(3) then drogon.y+=1 end
 
   for a in all(arrows) do
     a.x+=a.dx
@@ -323,11 +348,24 @@ function _update()
       a.y<0 or a.y>128 then
       del(arrows,a)
     end
+    if coll(a,drogon) then
+      del(arrows,a)
+      drogon.h-=1
+    end
   end
 
-  if (t%20==0) then
-    shoot()
+  if(t%6<3) then
+    drogon.sp=0
+  else
+    drogon.sp=1
   end
+
+  if (t%20==0) then shoot() end
+
+  if btn(0) then drogon.x-=1 end
+  if btn(1) then drogon.x+=1 end
+  if btn(2) then drogon.y-=1 end
+  if btn(3) then drogon.y+=1 end
 
 end
 
