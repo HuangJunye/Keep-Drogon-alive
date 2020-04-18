@@ -286,6 +286,19 @@ end
 -- keep drogon alive
 -- by Kirais & llunapuert
 
+function random()
+  qc = quantumcircuit()
+  qc.set_registers(1,1)
+  qc.h(0)
+  qc.measure(0,0)
+  result = simulate(qc,"counts",1)
+  if result["1"]==1 then 
+    return true
+  else
+    return false
+  end
+end
+
 function _init()
   t=0
 
@@ -419,9 +432,9 @@ function update_game()
     drogon.sp=1
   end
 
-  if (t%20==0) then 
+  if (t%10==0) then 
     for c in all(crossbows) do
-      shoot(c)
+      if random() then shoot(c) end
     end
   end
 
