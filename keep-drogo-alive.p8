@@ -1,11 +1,30 @@
 pico-8 cartridge // http://www.pico-8.com
 version 21
 __lua__
--- keep drogo alive
--- by kirais & llunapuert
-
-
+-- math.p8
+-- by decodoku
+math = {}
+math.pi = 3.14159
+math.max = max
+math.sqrt = sqrt
+math.floor = flr
+function math.random()
+  return rnd(1)
+end
+function math.cos(theta)
+  return cos(theta/(2*math.pi))
+end
+function math.sin(theta)
+  return -sin(theta/(2*math.pi))
+end
+function math.randomseed(time)
+end
+os = {}
+function os.time()
+end
 -->8
+-- microqiskit-lua
+-- by decodoku
 math.randomseed(os.time())
 
 function quantumcircuit ()
@@ -84,9 +103,6 @@ function quantumcircuit ()
   return qc
 
 end
-
-
-
 
 function simulate (qc, get, shots)
 
@@ -267,24 +283,28 @@ function simulate (qc, get, shots)
 
 end
 -->8
-math = {}
-math.pi = 3.14159
-math.max = max
-math.sqrt = sqrt
-math.floor = flr
-function math.random()
-  return rnd(1)
+-- keep drogo alive
+-- by Kirais & llunapuert
+
+function _init()
 end
-function math.cos(theta)
-  return cos(theta/(2*math.pi))
+
+function _update()
 end
-function math.sin(theta)
-  return -sin(theta/(2*math.pi))
+
+function _draw()
 end
-function math.randomseed(time)
-end
-os = {}
-function os.time()
+
+qc = quantumcircuit()
+qc.set_registers(2,2)
+qc.h(0)
+qc.cx(0,1)
+qc.measure(0,0)
+qc.measure(1,1)
+result = simulate(qc,"counts",1)
+
+for string, counts in pairs(result) do
+  print("Counts for "..string.."="..counts)
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
