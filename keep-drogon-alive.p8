@@ -299,12 +299,16 @@ function _init()
     imm=false,
     box = {x1=0,y1=0,x2=7,y2=7}
   }
-  crossbow = {
-    sp=16,
-    x=59,
-    y=110
-  }
+  crossbows = {}
   arrows = {}
+
+  for i=1,4 do
+    add(crossbows, {
+      sp=16,
+      x=-16+i*32,
+      y=110,
+    })
+  end
   start()
 end
 
@@ -349,11 +353,11 @@ function coll(a,b)
   return true
 end
 
-function shoot()
+function shoot(c)
   local a = {
     sp=32,
-    x=crossbow.x,
-    y=crossbow.y,
+    x=c.x,
+    y=c.y,
     dx=0,
     dy=-1,
     box = {x1=3,y1=4,x2=5,y2=7}
@@ -393,7 +397,11 @@ function update_game()
     drogon.sp=1
   end
 
-  if (t%20==0) then shoot() end
+  if (t%20==0) then 
+    for c in all(crossbows) do
+      shoot(c)
+    end
+  end
 
   if btn(0) then drogon.x-=1 end
   if btn(1) then drogon.x+=1 end
@@ -411,7 +419,9 @@ function draw_game()
     spr(a.sp,a.x,a.y)
   end
 
-  spr(crossbow.sp,crossbow.x,crossbow.y)
+  for c in all(crossbows) do
+    spr(c.sp,c.x,c.y)
+  end
 
   for i=1,4 do
     if i<=drogon.h then 
