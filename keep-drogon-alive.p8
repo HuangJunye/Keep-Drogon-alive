@@ -363,6 +363,7 @@ end
 
 function update_game()
   t+=1
+  if t%10==0 then drogon.y+=1 end
   if drogon.imm then
     drogon.t+=1
     if drogon.t>30 then
@@ -396,14 +397,12 @@ function update_game()
 
   if btn(0) then drogon.x-=1 end
   if btn(1) then drogon.x+=1 end
-  if btn(2) then drogon.y-=1 end
-  if btn(3) then drogon.y+=1 end
 
 end
 
 function draw_game()
   cls()
-  print(drogon.p,9)
+  print(drogon.y,9)
   if not drogon.imm or t%8 < 4 then
     spr(drogon.sp,drogon.x,drogon.y)
   end
