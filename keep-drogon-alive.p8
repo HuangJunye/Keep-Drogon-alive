@@ -392,6 +392,12 @@ function update_game()
   end
   if drogon.y>=100 then game_win() end
 
+  for c in all(crossbows) do
+    c.x += rnd(4) - 2
+    if c.x>=128 then c.x=128 end
+    if c.x<=0 then c.x=0 end
+  end
+
   for a in all(arrows) do
     a.x+=a.dx
     a.y+=a.dy
