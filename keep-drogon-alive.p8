@@ -293,6 +293,8 @@ function _init()
     sp=0,
     x=59,
     y=5,
+    dx=1,
+    dy=1/10,
     h=3,
     p=0,
     t=0,
@@ -328,6 +330,19 @@ end
 function draw_over()
   cls()
   print("game over",50,50,4)
+end
+
+function game_win()
+  _update = update_win
+  _draw = draw_win
+end
+
+function update_win()
+end
+
+function draw_win()
+  cls()
+  print("you win",50,50,4)
 end
 
 function abs_box(s)
@@ -367,7 +382,7 @@ end
 
 function update_game()
   t+=1
-  if t%10==0 then drogon.y+=1 end
+  drogon.y+=drogon.dy
   if drogon.imm then
     drogon.t+=1
     if drogon.t>30 then
@@ -375,6 +390,7 @@ function update_game()
       drogon.t=0
     end
   end
+  if drogon.y>=100 then game_win() end
 
   for a in all(arrows) do
     a.x+=a.dx
@@ -403,8 +419,8 @@ function update_game()
     end
   end
 
-  if btn(0) then drogon.x-=1 end
-  if btn(1) then drogon.x+=1 end
+  if btn(0) then drogon.x-=drogon.dx end
+  if btn(1) then drogon.x+=drogon.dx end
 
 end
 
