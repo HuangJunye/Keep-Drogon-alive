@@ -299,8 +299,34 @@ function random()
   end
 end
 
+timers = {}
+
+function timer_start(id, time)
+   timers[id] = { t = time }
+end
+
+function timer_check(id)
+   return timers[id].t <= 0
+end
+
+function timers_tick()
+   for timer in all(timers) do
+      if timer.t > 0 then
+         timer.t -= 0.01666666
+      else
+         timer.t = 0
+      end
+   end
+end
+
+function timers_clear()
+   timers = {}
+end
+
+cartdata(0)
 function _init()
   t=0
+  scene = "title"
   frames = 0
 
   drogon = {
@@ -311,7 +337,7 @@ function _init()
     h=8,
     dx=1,
     dy=1/10,
-    health=100,
+    health=60,
     p=0,
     t=0,
     blue=false,
@@ -328,7 +354,6 @@ function _init()
       y=110,
     })
   end
-  start()
 end
 
 function shake()
@@ -338,27 +363,50 @@ function shake()
  camera(shake_str.x,shake_str.y)
 end
 
-function start()
-  _update = update_game
-  _draw = draw_game
+function update_title()
+ if btn(4) then
+  scene = "game"
+ end
+end
+
+function draw_title()
+ cls()
+ print("Keep Drogon Alive",30,50) -- title
+ print("press 🅾️ to start",30,80)
+ -- print high score from data
+ print("high-score",40,100)
+ print(dget(0),85,100)
 end
 
 function game_over()
-  _update = update_over
-  _draw = draw_over
+ update_over()
+ draw_over()
+ -- update high score
+ if(dget(0)<drogon.health) then
+  dset(0,drogon.health)
+ end
+ if btn(4) then
+  scene = "title"
+ end
 end
 
-function update_over()
+function update_death()
+  if btn(4) then
+     scene = "title"
+     sfx(-1)
+     music(0)
+     _init()
+  end
 end
 
-function draw_over()
+function draw_death()
   cls()
   print("game over",50,50,4)
 end
 
 function game_win()
-  _update = update_win
-  _draw = draw_win
+  update_win()
+  draw_win()
 end
 
 function update_win()
@@ -495,7 +543,7 @@ function update_game()
       drogon.t=0
     end
   end
-  if drogon.y>=100 then game_win() end
+  if drogon.y>=100 then scene = "win" end
 
   for c in all(crossbows) do
     c.x += rnd(4) - 2
@@ -506,7 +554,7 @@ function update_game()
   update_arrows()
   collision()
 
-  if drogon.health<=0 then game_over() end 
+  if drogon.health<=0 then scene = "dead" end 
 
   if(t%6<3) then
     drogon.sp=0
@@ -528,6 +576,33 @@ function update_game()
     else
       drogon.blue = true
     end
+  end
+end
+
+function _update ()
+  timers_tick()
+  frames += 1
+  if scene == "title" then
+    update_title()
+  elseif scene == "game" then
+    update_game()
+  elseif scene == "dead" then
+    music(-1)
+    update_death()
+    elseif scene == "win" then
+      update_win()
+  end
+end
+
+function _draw ()
+  if scene == "title" then
+    draw_title()
+  elseif scene == "game" then
+    draw_game()
+  elseif scene == "dead" then
+    draw_death()
+  elseif scene == "win" then
+    draw_win()
   end
 end
 
