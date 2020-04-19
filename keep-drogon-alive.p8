@@ -301,16 +301,17 @@ end
 
 function _init()
   t=0
+  frames = 0
 
   drogon = {
     sp=0,
     x=59,
-    y=5,
+    y=10,
     w=8,
     h=8,
     dx=1,
     dy=1/10,
-    health=10,
+    health=100,
     p=0,
     t=0,
     blue=false,
@@ -396,10 +397,21 @@ function shoot(c)
   add(arrows,a)
 end
 
-function add_arrow(cb_x,cb_y, cb_polarity, cb_direction, cb_velocity, cb_size) --needs only an x,y
+function lerp(a,b,t)
+  return a + t*(b-a)
+end
+
+function every(duration,offset,period)
+  local offset = offset or 0
+  local period = period or 1
+  local offset_frames = frames + offset
+  return offset_frames % duration < period
+end
+
+function add_arrow(cb_x,cb_y, cb_blue, cb_direction, cb_velocity, cb_size) --needs only an x,y
   cb_direction = cb_direction or 0
   cb_velocity = cb_velocity or -1
-  cb_polarity = cb_polarity or false
+  cb_blue = cb_blue or random()
   cb_size = cb_size or 1
   local arrow = {
     sp = 33,
@@ -407,7 +419,7 @@ function add_arrow(cb_x,cb_y, cb_polarity, cb_direction, cb_velocity, cb_size) -
     y = cb_y,
     direction = cb_direction,
     velocity = cb_velocity, 
-    polarity = cb_polarity, 
+    blue = cb_blue, 
     size = cb_size
   }
   add(arrows,arrow)
@@ -422,8 +434,8 @@ end
 function update_arrows()
   for p in all(arrows) do
     if pythagoras(p.x,p.y,drogon.x+3,drogon.y+4) < 15 and p.blue == drogon.blue then
-      p.x = lerp(p.x,drogon.x+3,0.2)
-      p.y = lerp(p.y,drogon.y+6,0.2)
+      p.x = lerp(p.x,drogon.x+4,0.2)
+      p.y = lerp(p.y,drogon.y+4,0.2)
     else
       p.x = p.x+p.velocity*sin(p.direction)
       p.y = p.y+p.velocity*cos(p.direction)
@@ -450,12 +462,12 @@ function collision()
   for p = #arrows, 1, -1 do
       if inside(arrows[p], drogon) then
         if arrows[p].blue == drogon.blue then
-         -- if arrow is the same as ship
+         -- if arrow is the same as drogon
          drogon.health += 1
         elseif arrows[p].blue ~= drogon.blue then
-         -- if arrow is not the same as ship
+         -- if arrow is not the same as drogon
          drogon.imm = true
-         drogon.health -= 1
+         drogon.health -= 10
         end
         del(arrows,arrows[p])
       end
@@ -508,9 +520,24 @@ function update_game()
   end
 end
 
+function draw_ui()
+  local health = flr(drogon.health)
+  if health >= 100 then health = "max" end
+  print(health,5,2,0)
+  print(health,5,1,7)
+  
+  local healthbar = 117
+  local ragemode = 7
+  if drogon.health < 20 and every(4,0,2) then
+    ragemode = 9
+  end
+  if drogon.blue then color = 12 else color = 8 end
+  rectfill(21,2,21+drogon.health,6,ragemode)
+  rectfill(20,1,20+drogon.health,5,color)
+end
+
 function draw_game()
   cls()
-  print(drogon.y,9)
       
   if not drogon.imm or t%8 < 4 then
     spr(drogon.sp,drogon.x,drogon.y)
@@ -533,13 +560,7 @@ function draw_game()
     spr(c.sp,c.x,c.y)
   end
 
-  for i=1,4 do
-    if i<=drogon.health then 
-      spr(14,98+6*i,3)
-    else
-      spr(15,98+6*i,3)
-    end
-  end
+  draw_ui()
 end
 __gfx__
 50078005000780000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000808000006060000
