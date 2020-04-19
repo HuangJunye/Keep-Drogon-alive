@@ -319,6 +319,7 @@ function _init()
   }
   crossbows = {}
   arrows = {}
+  shake_str = {x=0,y=0}
 
   for i=1,4 do
     add(crossbows, {
@@ -328,6 +329,13 @@ function _init()
     })
   end
   start()
+end
+
+function shake()
+ -- shake camera
+ shake_str.x=2-rnd(4)
+ shake_str.y=2-rnd(4)
+ camera(shake_str.x,shake_str.y)
 end
 
 function start()
@@ -477,9 +485,12 @@ end
 function update_game()
   t+=1
   drogon.y+=drogon.dy
+
   if drogon.imm then
     drogon.t+=1
+    shake()
     if drogon.t>30 then
+      camera(0,0)
       drogon.imm=false
       drogon.t=0
     end
