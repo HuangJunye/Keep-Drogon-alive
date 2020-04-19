@@ -285,44 +285,7 @@ end
 -->8
 -- keep drogon alive
 -- by Kirais & llunapuert
-
-function random()
-  qc = quantumcircuit()
-  qc.set_registers(1,1)
-  qc.h(0)
-  qc.measure(0,0)
-  result = simulate(qc,"counts",1)
-  if result["1"]==1 then 
-    return true
-  else
-    return false
-  end
-end
-
-timers = {}
-
-function timer_start(id, time)
-   timers[id] = { t = time }
-end
-
-function timer_check(id)
-   return timers[id].t <= 0
-end
-
-function timers_tick()
-   for timer in all(timers) do
-      if timer.t > 0 then
-         timer.t -= 0.01666666
-      else
-         timer.t = 0
-      end
-   end
-end
-
-function timers_clear()
-   timers = {}
-end
-
+-- main game
 cartdata(0)
 function _init()
   t=0
@@ -356,177 +319,29 @@ function _init()
   end
 end
 
-function shake()
- -- shake camera
- shake_str.x=2-rnd(4)
- shake_str.y=2-rnd(4)
- camera(shake_str.x,shake_str.y)
-end
-
-function update_title()
- if btn(4) then
-  scene = "game"
- end
-end
-
-function draw_title()
- cls()
- print("Keep Drogon Alive",30,50) -- title
- print("press 🅾️ to start",30,80)
- -- print high score from data
- print("high-score",40,100)
- print(dget(0),85,100)
-end
-
-function game_over()
- update_over()
- draw_over()
- -- update high score
- if(dget(0)<drogon.health) then
-  dset(0,drogon.health)
- end
- if btn(4) then
-  scene = "title"
- end
-end
-
-function update_death()
-  if btn(4) then
-     scene = "title"
-     sfx(-1)
-     music(0)
-     _init()
+function _update ()
+  frames += 1
+  if scene == "title" then
+    update_title()
+  elseif scene == "game" then
+    update_game()
+  elseif scene == "dead" then
+    music(-1)
+    update_death()
+  elseif scene == "win" then
+    update_win()
   end
 end
 
-function draw_death()
-  cls()
-  print("game over",50,50,4)
-end
-
-function game_win()
-  update_win()
-  draw_win()
-end
-
-function update_win()
-end
-
-function draw_win()
-  cls()
-  print("you win",50,50,4)
-end
-
-function abs_box(s)
- local box = {}
- box.x1 = s.box.x1 + s.x
- box.y1 = s.box.y1 + s.y
- box.x2 = s.box.x2 + s.x
- box.y2 = s.box.y2 + s.y
- return box
-end
-
-function coll(a,b)
-  box_a = abs_box(a)
-  box_b = abs_box(b)
-
-  if box_a.x1 > box_b.x2 or
-    box_a.y1 > box_b.y2 or
-    box_b.x1 > box_a.x2 or
-    box_b.y1 > box_a.y2 then
-    return false
-  end
-
-  return true
-end
-
-function shoot(c)
-  local a = {
-    sp=33,
-    x=c.x,
-    y=c.y,
-    dx=0,
-    dy=-1,
-    blue=random(),
-    box = {x1=3,y1=4,x2=5,y2=7}
-  }
-  add(arrows,a)
-end
-
-function lerp(a,b,t)
-  return a + t*(b-a)
-end
-
-function every(duration,offset,period)
-  local offset = offset or 0
-  local period = period or 1
-  local offset_frames = frames + offset
-  return offset_frames % duration < period
-end
-
-function add_arrow(cb_x,cb_y, cb_blue, cb_direction, cb_velocity, cb_size) --needs only an x,y
-  cb_direction = cb_direction or 0
-  cb_velocity = cb_velocity or -1
-  cb_blue = cb_blue or random()
-  cb_size = cb_size or 1
-  local arrow = {
-    sp = 33,
-    x = cb_x,
-    y = cb_y,
-    direction = cb_direction,
-    velocity = cb_velocity, 
-    blue = cb_blue, 
-    size = cb_size
-  }
-  add(arrows,arrow)
-end
-
-function pythagoras(ax,ay,bx,by)
-  local x = ax-bx
-  local y = ay-by
-  return sqrt(x*x+y*y)
-end
-
-function update_arrows()
-  for p in all(arrows) do
-    if pythagoras(p.x,p.y,drogon.x+3,drogon.y+4) < 15 and p.blue == drogon.blue then
-      p.x = lerp(p.x,drogon.x+4,0.2)
-      p.y = lerp(p.y,drogon.y+4,0.2)
-    else
-      p.x = p.x+p.velocity*sin(p.direction)
-      p.y = p.y+p.velocity*cos(p.direction)
-    end
-  end
-  for p = #arrows, 1, -1 do
-    local x = arrows[p].x
-    local y = arrows[p].y
-    if x > 120 or x < 8 or y > 128 or y < 0 then del(arrows,arrows[p]) end
-  end
-end
-
-function inside(point, enemy)
-  if point == nil then return false end
-  local px = point.x + 4
-  local py = point.y + 4
-  return
-    px > enemy.x and px < enemy.x + enemy.w and
-    py > enemy.y and py < enemy.y + enemy.h
-end
-
-function collision()
-  -- enemy arrow collisions
-  for p = #arrows, 1, -1 do
-      if inside(arrows[p], drogon) then
-        if arrows[p].blue == drogon.blue then
-         -- if arrow is the same as drogon
-         drogon.health += 1
-        elseif arrows[p].blue ~= drogon.blue then
-         -- if arrow is not the same as drogon
-         drogon.imm = true
-         drogon.health -= 10
-        end
-        del(arrows,arrows[p])
-      end
+function _draw ()
+  if scene == "title" then
+    draw_title()
+  elseif scene == "game" then
+    draw_game()
+  elseif scene == "dead" then
+    draw_death()
+  elseif scene == "win" then
+    draw_win()
   end
 end
 
@@ -579,49 +394,6 @@ function update_game()
   end
 end
 
-function _update ()
-  timers_tick()
-  frames += 1
-  if scene == "title" then
-    update_title()
-  elseif scene == "game" then
-    update_game()
-  elseif scene == "dead" then
-    music(-1)
-    update_death()
-    elseif scene == "win" then
-      update_win()
-  end
-end
-
-function _draw ()
-  if scene == "title" then
-    draw_title()
-  elseif scene == "game" then
-    draw_game()
-  elseif scene == "dead" then
-    draw_death()
-  elseif scene == "win" then
-    draw_win()
-  end
-end
-
-function draw_ui()
-  local health = flr(drogon.health)
-  if health >= 100 then health = "max" end
-  print(health,5,2,0)
-  print(health,5,1,7)
-  
-  local healthbar = 117
-  local ragemode = 7
-  if drogon.health < 20 and every(4,0,2) then
-    ragemode = 9
-  end
-  if drogon.blue then color = 12 else color = 8 end
-  rectfill(21,2,21+drogon.health,6,ragemode)
-  rectfill(20,1,20+drogon.health,5,color)
-end
-
 function draw_game()
   cls()
       
@@ -647,6 +419,159 @@ function draw_game()
   end
 
   draw_ui()
+end
+
+function draw_ui()
+  local health = flr(drogon.health)
+  if health >= 100 then health = "max" end
+  print(health,5,2,0)
+  print(health,5,1,7)
+  
+  local healthbar = 117
+  local ragemode = 7
+  if drogon.health < 20 and every(4,0,2) then
+    ragemode = 9
+  end
+  if drogon.blue then color = 12 else color = 8 end
+  rectfill(21,2,21+drogon.health,6,ragemode)
+  rectfill(20,1,20+drogon.health,5,color)
+end
+
+function update_title()
+ if btn(4) then
+  scene = "game"
+ end
+end
+
+function draw_title()
+ cls()
+ print("Keep Drogon Alive",30,50) -- title
+ print("press 🅾️ to start",30,80)
+ -- print high score from data
+ print("high-score",40,100)
+ print(dget(0),85,100)
+end
+
+function update_death()
+  if btn(4) then
+     scene = "title"
+     sfx(-1)
+     music(0)
+     _init()
+  end
+end
+
+function draw_death()
+  cls()
+  print("game over",50,50,4)
+end
+
+function update_win()
+end
+
+function draw_win()
+  cls()
+  print("you win",50,50,4)
+end
+
+-- handy functions
+function random()
+  qc = quantumcircuit()
+  qc.set_registers(1,1)
+  qc.h(0)
+  qc.measure(0,0)
+  result = simulate(qc,"counts",1)
+  if result["1"]==1 then 
+    return true
+  else
+    return false
+  end
+end
+
+function lerp(a,b,t)
+  return a + t*(b-a)
+end
+
+function shake()
+ -- shake camera
+ shake_str.x=2-rnd(4)
+ shake_str.y=2-rnd(4)
+ camera(shake_str.x,shake_str.y)
+end
+
+function every(duration,offset,period)
+  local offset = offset or 0
+  local period = period or 1
+  local offset_frames = frames + offset
+  return offset_frames % duration < period
+end
+
+function pythagoras(ax,ay,bx,by)
+  local x = ax-bx
+  local y = ay-by
+  return sqrt(x*x+y*y)
+end
+
+-- in game objects
+
+function add_arrow(cb_x,cb_y, cb_blue, cb_direction, cb_velocity, cb_size) --needs only an x,y
+  cb_direction = cb_direction or 0
+  cb_velocity = cb_velocity or -1
+  cb_blue = cb_blue or random()
+  cb_size = cb_size or 1
+  local arrow = {
+    sp = 33,
+    x = cb_x,
+    y = cb_y,
+    direction = cb_direction,
+    velocity = cb_velocity, 
+    blue = cb_blue, 
+    size = cb_size
+  }
+  add(arrows,arrow)
+end
+
+function update_arrows()
+  for p in all(arrows) do
+    if pythagoras(p.x,p.y,drogon.x+3,drogon.y+4) < 15 and p.blue == drogon.blue then
+      p.x = lerp(p.x,drogon.x+4,0.2)
+      p.y = lerp(p.y,drogon.y+4,0.2)
+    else
+      p.x = p.x+p.velocity*sin(p.direction)
+      p.y = p.y+p.velocity*cos(p.direction)
+    end
+  end
+  for p = #arrows, 1, -1 do
+    local x = arrows[p].x
+    local y = arrows[p].y
+    if x > 120 or x < 8 or y > 128 or y < 0 then del(arrows,arrows[p]) end
+  end
+end
+
+function inside(point, enemy)
+  if point == nil then return false end
+  local px = point.x + 4
+  local py = point.y + 4
+  return
+    px > enemy.x and px < enemy.x + enemy.w and
+    py > enemy.y and py < enemy.y + enemy.h
+end
+
+function collision()
+  -- enemy arrow collisions
+  for p = #arrows, 1, -1 do
+      if inside(arrows[p], drogon) then
+        if arrows[p].blue == drogon.blue then
+         -- if arrow is the same as drogon
+         drogon.health += 1
+        elseif arrows[p].blue ~= drogon.blue then
+         -- if arrow is not the same as drogon
+         drogon.imm = true
+         drogon.health -= 10
+        end
+        del(arrows,arrows[p])
+      end
+  end
 end
 __gfx__
 50078005000780000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000808000006060000
