@@ -310,13 +310,7 @@ function _init()
   arrows = {}
   shake_str = {x=0,y=0}
 
-  for i=1,4 do
-    add(crossbows, {
-      sp=32,
-      x=-16+i*32,
-      y=110,
-    })
-  end
+  init_crossbows()
 end
 
 function _update ()
@@ -360,12 +354,7 @@ function update_game()
   end
   if drogon.y>=100 then scene = "win" end
 
-  for c in all(crossbows) do
-    c.x += rnd(4) - 2
-    if c.x>=128 then c.x=128 end
-    if c.x<=0 then c.x=0 end
-  end
-
+  update_crossbows()
   update_arrows()
   collision()
 
@@ -375,12 +364,6 @@ function update_game()
     drogon.sp=0
   else
     drogon.sp=1
-  end
-
-  if (t%10==0) then 
-    for c in all(crossbows) do
-      if random() then add_arrow(c.x,c.y) end
-    end
   end
 
   if btn(0) then drogon.x-=drogon.dx end
@@ -396,14 +379,12 @@ end
 
 function draw_game()
   cls()
-      
   if not drogon.imm or t%8 < 4 then
-    spr(drogon.sp,drogon.x,drogon.y)
     if drogon.blue then
       spr(drogon.sp+16,drogon.x,drogon.y)
     else
       spr(drogon.sp,drogon.x,drogon.y)
-  end
+    end
   end
   
   for a in all(arrows) do
@@ -513,11 +494,86 @@ function pythagoras(ax,ay,bx,by)
 end
 
 -- in game objects
+function init_crossbows()
+  for i=1,4 do
+    local c = {
+      sp=32,
+      y=110,
+      shotpattern=0
+    }
+    if i%2==0 then
+      c.blue = true
+    else
+      c.blue = false
+    end 
+    if i%4<2 then
+      c.x = 32
+    else
+      c.x = 96
+    end
+    add(crossbows, c)
+  end
+end
 
-function add_arrow(cb_x,cb_y, cb_blue, cb_direction, cb_velocity, cb_size) --needs only an x,y
-  cb_direction = cb_direction or 0
-  cb_velocity = cb_velocity or -1
-  cb_blue = cb_blue or random()
+function update_crossbows()
+  for c in all(crossbows) do
+    if t/30 < 5.5 then
+      c.shotpattern = 0
+    elseif t/30 < 10 then
+      c.shotpattern = 1
+    elseif t/30 < 15 then
+      c.shotpattern = 2
+    end
+    if c.shotpattern == 0 then
+      if c.blue then
+        c.x+=cos(t/(180))
+      else
+        c.x-=cos(t/(180))
+      end
+      -- simple shots going downwards
+      if every(10) then
+        add_arrow(c.x, c.y, c.blue, 0, -1, -1)
+      end
+    elseif c.shotpattern == 1 then
+      -- simple shots going downwards
+      if c.blue then
+        color = c.blue
+        if every(100) then
+          for i=-0.2,0.2,0.02 do
+            add_arrow(c.x, c.y, color, i, -1, -1)
+            color = not color
+          end
+        end
+      else
+        color = c.blue
+        if every(100,50) then
+          for i=-0.2,0.2,0.02 do
+            add_arrow(c.x, c.y, color, i, -1, -1)
+            color = not color
+          end
+        end
+      end
+    elseif c.shotpattern == 2 then
+      dir = t/(30*4)
+      if c.blue then
+        if every(10) then
+          add_arrow(c.x, c.y, c.blue, (dir-2)/10, -1, -1)
+          add_arrow(c.x, c.y, c.blue, (dir-4)/10, -1, -1)
+        end
+      else
+        if every(10) then
+          add_arrow(c.x, c.y, c.blue, (-dir+2)/10, -1, -1)
+          add_arrow(c.x, c.y, c.blue, (-dir+4)/10, -1, -1)
+        end
+      end
+    end
+  end
+end
+
+function add_arrow(cb_x, cb_y, cb_blue, cb_direction, cb_velocity, cb_size) --needs only an x,y
+  cb_direction = cb_direction
+  cb_velocity = cb_velocity
+  cb_blue = cb_blue
   cb_size = cb_size or 1
   local arrow = {
     sp = 33,
@@ -544,7 +600,7 @@ function update_arrows()
   for p = #arrows, 1, -1 do
     local x = arrows[p].x
     local y = arrows[p].y
-    if x > 120 or x < 8 or y > 128 or y < 0 then del(arrows,arrows[p]) end
+    if x > 128 or x < 0 or y > 128 or y < 0 then del(arrows,arrows[p]) end
   end
 end
 
@@ -606,3 +662,5 @@ ddddddd0000800000000000000000000000000000000000000000000000000000000000000000000
 00000000000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__sfx__
+01050b2a016000160002600036000460006600086000a6000c6000e6001260015600186001c60021600256002a6002e60033600376003b6003c6003c6003d6003a6003760037600356003360031600306002f600
