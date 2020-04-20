@@ -528,7 +528,7 @@ function update_crossbows()
       c.shotpattern = 0
     elseif t/30 < 10 then
       c.shotpattern = 1
-    elseif t/30 < 15 then
+    else
       c.shotpattern = 2
     end
     if c.shotpattern == 0 then
@@ -561,7 +561,7 @@ function update_crossbows()
         end
       end
     elseif c.shotpattern == 2 then
-      dir = t/(30*4)
+      dir = t/(30*4) - 1
       if c.blue then
         if every(10) then
           add_arrow(c.x, c.y, c.blue, (dir-2)/10, -1, -1)
@@ -582,16 +582,19 @@ function add_arrow(cb_x, cb_y, cb_blue, cb_direction, cb_velocity, cb_size) --ne
   cb_velocity = cb_velocity
   cb_blue = cb_blue
   cb_size = cb_size or 1
-  local arrow = {
-    sp = 33,
-    x = cb_x,
-    y = cb_y,
-    direction = cb_direction,
-    velocity = cb_velocity, 
-    blue = cb_blue, 
-    size = cb_size
-  }
-  add(arrows,arrow)
+  -- only shoot arrows that are pointing forward
+  if abs(cb_direction) <= 0.2 then
+    local arrow = {
+      sp = 33,
+      x = cb_x,
+      y = cb_y,
+      direction = cb_direction,
+      velocity = cb_velocity, 
+      blue = cb_blue, 
+      size = cb_size
+    }
+    add(arrows,arrow)
+  end
 end
 
 function update_arrows()
@@ -632,7 +635,7 @@ function collision()
          -- if arrow is not the same as drogon
           if run_qc(arrows[p], drogon) then
             drogon.imm = true
-            drogon.health -= 10
+            drogon.health -= 20
           end
         end
         del(arrows,arrows[p])
