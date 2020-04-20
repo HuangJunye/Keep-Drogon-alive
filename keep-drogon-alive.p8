@@ -1,6 +1,9 @@
 pico-8 cartridge // http://www.pico-8.com
 version 21
 __lua__
+-- keep drogon alive
+-- by kirais & llunapuert
+
 -- math.p8
 -- by decodoku
 math = {}
