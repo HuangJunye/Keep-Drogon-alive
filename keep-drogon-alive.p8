@@ -384,6 +384,7 @@ end
 
 function draw_game()
   cls()
+  draw_lvl()
   if not drogon.imm or t%8 < 4 then
     if drogon.blue then
       spr(drogon.sp+16,drogon.x,drogon.y)
@@ -661,6 +662,115 @@ function run_qc(arrow, drogon)
     return false
   end
 end
+
+-- Animated Clouds
+
+apartm = {}
+apartm.x0 = 0
+apartm.y0 = 10
+apartm.x1 = 90
+apartm.y1 = 40
+
+-- Let's define a couple of cloud styles below
+
+cl01 = {
+	current = 0, -- This is the unique timer for this cloud, each cloud object has it's own
+	top_offset = 67, -- Off screen starting position for this layer of the cloud
+	top_width = 5, -- Layer width
+	middle_width = 9,
+	middle_offset = 65,
+	bottom_width = 4,
+	bottom_offset = 68,
+	max_size = false, -- Used as a flag to indicate the last animated layer has reached it's max size and should now start animating back.
+	delay_start = 0, -- The start of the delay counter
+	delay_end = 0 -- End of delay counter for this flag, once the counter reaches this value, the cloud will start it's animation.
+}
+cl02 = {
+	current = 0,
+	top_offset = 16,
+	top_width = 5,
+	middle_width = 9,
+	middle_offset = 17,
+	bottom_width = 4,
+	bottom_offset = 14,
+	max_size = false,
+	delay_start = 0,
+	delay_end = 0
+}
+
+cl03 = {
+	current = 0,
+	top_offset = 0,
+	top_width = 5,
+	middle_width = 8,
+	middle_offset = -1,
+	bottom_width = 5,
+	bottom_offset = -2,
+	max_size = false,
+	delay_start = 0,
+	delay_end = 200
+}
+
+function cloud_draw(cl_next, top) -- cl_next is the supplied, unique object i.e. cl01 or cl02. Top will dictate the vertical position of the cloud.
+	if cl_next.delay_start < cl_next.delay_end then -- This counter will determine the start time of the cloud.
+		cl_next.delay_start += 1
+	else 
+		if cl_next.current < 20  then -- Internal ticker, by adjusting the max value of current or the steps it increments by, you adjust the animation speed.
+			cl_next.current += 2
+			
+		else 
+			cl_next.current = 0 -- "current" has reached it's theshold so reset it for the next frame and then commence this frames animation
+			cl_next.top_offset += 1 -- Move top, middle and bottom 1px
+			cl_next.middle_offset += 1
+			cl_next.bottom_offset += 1
+			if cl_next.bottom_width > 3 and cl_next.bottom_width <= 11 and cl_next.max_size == false then
+				cl_next.bottom_width +=1 -- Bottom layer hasn't reached it's max size so grow it's width 1px
+		
+			elseif cl_next.bottom_width >= 8 then -- Bottom is larger than max size so animate back.
+				cl_next.bottom_width -= 1
+				cl_next.max_size = true
+			
+			elseif cl_next.bottom_width < 9 and cl_next.max_size == true then -- Third stage in the width of the bottom layer makes this animation into a loop.
+				cl_next.bottom_width += 1
+				cl_next.max_size = false
+			end
+		end
+		
+		--line1
+		for i=0,cl_next.top_width do -- We're using a for loop to render the width of each layer
+			if cl_next.top_offset > 128 then -- By adjusting the max value, you can increase or decrease the position the cloud will reach before it returns to the start position.
+				cl_next.top_offset = 0
+			else
+				pset(cl_next.top_offset+i, top, 7) -- draw the layer
+			end
+		end
+		
+		--line2
+		for i=0,cl_next.middle_width do
+			if cl_next.middle_offset > 128 then
+				cl_next.middle_offset = 0
+			else
+				pset(cl_next.middle_offset+i, top+1, 7)
+			end
+		end
+		
+		--line3
+		for i=0,cl_next.bottom_width do
+			if cl_next.bottom_offset > 128 then
+				cl_next.bottom_offset = 0
+			else
+				pset(cl_next.bottom_offset+i, top+2, 7)
+			end
+		end
+	end
+end
+
+function draw_lvl()
+	cloud01 = cloud_draw(cl01, 34) -- Call as many instances of clouds as needed, each with it's own unique object and vertical position
+	cloud02 = cloud_draw(cl02, 48)
+  cloud03 = cloud_draw(cl03, 16)
+end
+
 __gfx__
 00108000101080010010800000108000000000000000000000000000000000000000000000000000000000000000000000000000000000000808000006060000
 0108d000d108d01d1108d0010108d000000000000000000000000000000000000000000000000000000000000000000000000000000000008888800066666000
