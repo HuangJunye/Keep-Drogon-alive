@@ -443,15 +443,14 @@ function draw_title()
   cls()
   if drogon.blue then
     spr(drogon.sp+16,drogon.x,drogon.y)
-    print("color",80,90,12)
+    print("color",92,90,12)
   else
     spr(drogon.sp,drogon.x,drogon.y)
-    print("color",80,90,8)
+    print("color",92,90,8)
   end
-  print("keep drogon alive",30,50,6) -- title
-  print("press ❎ to",40,80,6)
-  print("change drogon",25,90,6)
-  print("press 🅾️ to start",30,110,6)
+  print("keep drogon alive",30,50,4) -- title
+  print("press ❎ to change",17,90,6)
+  print("press 🅾️ to start",30,100,6)
 end
 
 function update_death()
