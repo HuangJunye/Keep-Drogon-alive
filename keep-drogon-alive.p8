@@ -454,6 +454,9 @@ function draw_title()
 end
 
 function update_death()
+  -- add gravity
+  drogon.dy+=0.1
+  drogon.y+=drogon.dy
   if btn(4) then
      scene = "title"
      sfx(-1)
@@ -464,8 +467,13 @@ end
 
 function draw_death()
   cls()
-  music(8)
-  print("game over",50,50,4)
+  if drogon.blue then
+    spr(drogon.sp+16,drogon.x,drogon.y)
+  else
+    spr(drogon.sp,drogon.x,drogon.y)
+  end
+  print("drogon is dead..",34,50,8)
+  print("press 🅾️ to start over",20,100,6)
 end
 
 function update_win()
@@ -473,7 +481,9 @@ end
 
 function draw_win()
   cls()
-  print("you win",50,50,4)
+  print("dracarys!",48,50,9)
+  print("you win!",50,60,9)
+  print("press 🅾️ to start over",20,100,6)
 end
 
 -- handy functions
