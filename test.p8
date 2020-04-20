@@ -299,4 +299,26 @@ function random()
   end
 end
 
-print(random())
+drogon = {blue=true}
+arrow = {blue=false}
+
+function run_qc(drogon, arrow)
+  local qc = quantumcircuit()
+  qc.set_registers(1,1)
+  if drogon.blue then qc.h(0) end
+  if arrow.blue then
+    qc.h(0)
+    qc.measure(0,0)
+  else
+    qc.measure(0,0)
+  end
+  
+  result = simulate(qc, "counts", 1)
+  if result["1"]==1 then 
+    return true
+  else
+    return false
+  end
+end
+
+print(run_qc(drogon, arrow))

@@ -619,16 +619,38 @@ function collision()
   -- enemy arrow collisions
   for p = #arrows, 1, -1 do
       if inside(arrows[p], drogon) then
+        
         if arrows[p].blue == drogon.blue then
          -- if arrow is the same as drogon
          drogon.health += 1
         elseif arrows[p].blue ~= drogon.blue then
          -- if arrow is not the same as drogon
-         drogon.imm = true
-         drogon.health -= 10
+          if run_qc(arrows[p], drogon) then
+            drogon.imm = true
+            drogon.health -= 10
+          end
         end
         del(arrows,arrows[p])
       end
+  end
+end
+
+function run_qc(arrow, drogon)
+  local qc = quantumcircuit()
+  qc.set_registers(1,1)
+  if drogon.blue then qc.h(0) end
+  if arrow.blue then
+    qc.h(0)
+    qc.measure(0,0)
+  else
+    qc.measure(0,0)
+  end
+  
+  result = simulate(qc, "counts", 1)
+  if result["1"]==1 then 
+    return true
+  else
+    return false
   end
 end
 __gfx__
