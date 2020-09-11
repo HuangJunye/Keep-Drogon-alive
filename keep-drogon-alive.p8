@@ -483,6 +483,12 @@ function draw_death()
 end
 
 function update_win()
+if btn(4) then
+     scene = "title"
+     sfx(-1)
+     music(0)
+     _init()
+  end
 end
 
 function draw_win()
